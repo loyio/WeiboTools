@@ -8,11 +8,11 @@ Created on 2018/10/8
 
 import requests
 import time
+from bs4 import BeautifulSoup
 
 
 if __name__ == '__main__':
-    session = requests.session();
-    while(True):
-        atc_content = session.get("https://m.weibo.cn/status/4292838109889566?").text
-        print(atc_content[atc_content.find("read_count"):atc_content.find("read_count")+22])
-        time.sleep(1)
+    session = requests.session()
+    atc_content = session.get("https://www.weibo.com/loveycyue").text
+    print(atc_content)
+    time.sleep(1)
