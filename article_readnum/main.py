@@ -7,12 +7,22 @@ Created on 2018/10/8
 
 
 import requests
+import sys
 import time
 
+read_num_cmp = ''
 
 if __name__ == '__main__':
-    session = requests.session()
-    while(True):
-        atc_content = session.get("https://media.weibo.cn/article?id=2309404292561916325492").text
-        print(atc_content[atc_content.find("read_count"):atc_content.find("read_count")+23])
-        time.sleep(1)
+    if(len(sys.argv) < 2):
+        print("请在后面加上头条文章链接")
+    else:
+        session = requests.session()
+        atc_content = session.get(sys.argv[1]).text
+        while(True):
+            read_num = atc_content[atc_content.find("read_count"):atc_content.find("read_count")+23]
+            if(read_num == read_num_cmp):
+                print("已被官方限制，暂停阅读量更新")
+                quit(0)
+            else:
+                read_num_cmp = read_num
+            time.sleep(1)
