@@ -11,6 +11,7 @@ import sys
 import time
 
 read_num_cmp = ''
+try_count = 0
 
 if __name__ == '__main__':
     if(len(sys.argv) < 2):
@@ -21,8 +22,11 @@ if __name__ == '__main__':
             atc_content = session.get(sys.argv[1]).text
             read_num = atc_content[atc_content.find("read_count"):atc_content.find("read_count")+23]
             if(read_num == read_num_cmp):
-                print("已被官方限制，暂停阅读量更新")
-                quit(0)
+                if(try_count == 5):
+                    print("已被官方限制，暂停阅读量更新")
+                    quit(0)
+                else:
+                    try_count += 1
             else:
                 read_num_cmp = read_num
                 print(read_num_cmp)
