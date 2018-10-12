@@ -27,6 +27,7 @@ if __name__ == '__main__':
                     quit(0)
                 else:
                     try_count += 1
+                    print("try_some_great", try_count)
             else:
                 read_num_cmp = read_num
                 print(read_num_cmp)
