@@ -18,7 +18,7 @@ if __name__ == '__main__':
     else:
         like_id = int(sys.argv[1][-16:len(sys.argv[1])])
         session = requests.session()
-        like_url = "https://api.weibo.cn/2/like/set_like?new_version=0&gsid="+login_account.user_account[1]["gsid"]+"&wm=90163_90001&from=1885396040&c=weixinminiprogram&s="+login_account.user_account[1]["s"]
+        like_url = "https://api.weibo.cn/2/like/set_like?new_version=0&gsid="+login_account.user_account[0]["gsid"]+"&wm=90163_90001&from=1885396040&c=weixinminiprogram&s="+login_account.user_account[0]["s"]
         postdata = {
             "id": like_id,
             "mid": like_id

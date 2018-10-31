@@ -5,18 +5,11 @@ Created on 2018/10/29
 @author: susmote
 """
 
-import sys
 import os
-sys.path.append(os.path.dirname(__file__))
-import data
+import sys
+sys.path.append(os.path.abspath(os.path.dirname(os.getcwd())+os.path.sep+"."))
+import login_account_cookies
 
-print(data.name)
+print(login_account_cookies.account_cookies)
 
-count = 0
-while(True):
-    print(count)
-    count+=1
-    if count == 20:
-        exit()
-    else:
-        continue
+
