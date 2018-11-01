@@ -10,8 +10,9 @@ import random
 import time
 import sys
 import os
-sys.path.append(os.path.dirname(__file__))
-import login_account
+sys.path.append(os.path.abspath(os.path.dirname(os.getcwd())+os.path.sep+"."))
+import login_account_cookies
+print("批量评论系统".center(30, "*"))
 
 rainbow_word_list = ["#正能量偶像杨超越#必须支持杨超越[羞嗒嗒][羞嗒嗒][羞嗒嗒]@火箭少女101_杨超越",
                 "杨超越美爆了。 正妹[爱你][爱你][爱你][爱你]  我的妹妹就是美[爱你][爱你][爱你]  母爱变质的一天[爱你][爱你][爱你][爱你]  今天是女友粉[爱你][爱你][爱你][爱你]    想把她藏起来！可是不可以[爱你][爱你][爱你][爱你]@火箭少女101_杨超越 #正能量偶像杨超越#",
@@ -30,33 +31,68 @@ rainbow_word_list = ["#正能量偶像杨超越#必须支持杨超越[羞嗒嗒]
                 "#正能量偶像杨超越#一时失语，这样自然精致豪无攻击的面容😘，超超越越加油！！[羞嗒嗒][羞嗒嗒][羞嗒嗒]@火箭少女101_杨超越"]
 
 
-test_count = 0
 next_rannum = 20
+comment_count = 0
+take_count = 0
+
 if __name__ == '__main__':
+    begin_time = time.time()
+    print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
     if (len(sys.argv) < 3):
-        print("请在后面加上你要评论的微博链接和要进行评论的账号")
+        print("请在后面加上你要评论的微博链接和要进行评论号组")
     else:
+        if sys.argv[2] == "1":
+            account_cookies = login_account_cookies.account_cookies_1
+        elif sys.argv[2] == "2":
+            account_cookies = login_account_cookies.account_cookies_2
+        else:
+            account_cookies = []
+            print("没有这组号")
+            exit()
+        account_index = 0
         while(True):
-            test_count+=1
-            print("评论次数",test_count)
+            print("账号id", account_index)
             session = requests.session()
+            headers = {
+                "Host": "m.weibo.cn",
+                "Cookie": account_cookies[account_index]
+            }
             random_num = random.randint(0, len(rainbow_word_list) - 1)
             if(random_num != next_rannum):
+                print("评论次数", comment_count)
+                comment_count += 1
                 next_rannum = random_num
                 comment_content = rainbow_word_list[next_rannum]
-                comment_id = int(sys.argv[2][-16:len(sys.argv[2])])
-                comment_url = "https://api.weibo.cn/2/comments/create?gsid="+ login_account.user_account[int(sys.argv[1])]["gsid"] +"&from=1885396040&c=weixinminiprogram&s="+ login_account.user_account[int(sys.argv[1])]['s']
+                comment_id = int(sys.argv[1][-16:len(sys.argv[1])])
+                comment_url = "https://m.weibo.cn/api/comments/create"
+                st_url = "https://m.weibo.cn/api/config"
+                login_data = session.get(st_url, headers=headers).text
+                login_data_json = json.loads(login_data)["data"]
                 postdata = {
-                    "comment": comment_content,
-                    "id": comment_id
+                    "content": comment_content,
+                    "mid": comment_id,
+                    "st":login_data_json["st"]
                 }
-                res = session.post(comment_url, data=postdata)
+                res = session.post(comment_url, data=postdata, headers=headers)
                 res_json = json.loads(res.text)
-                if list(res_json.keys())[0] == "errmsg":
-                    print(res_json["errmsg"])
-                    time.sleep(360)
-                    continue
+                if res_json["ok"] == 0 or comment_count == 10:
+                    if res_json["ok"] == 0:
+                        print(res_json["msg"])
+                    comment_count = 0
+                    account_index+=1
+                    if account_index == len(account_cookies):
+                        print("第" + str(take_count) + "轮结束")
+                        print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+                        time.sleep(1200)
+                        take_count += 1
+                        account_index = 0
+                        continue
+                    else:
+                        continue
                 else:
                     continue
             else:
                 continue
+    end_time = time.time()
+    print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+    print("共花费%d秒" % (end_time - begin_time))

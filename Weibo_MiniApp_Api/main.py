@@ -10,8 +10,8 @@ import random
 import time
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.dirname(os.getcwd())+os.path.sep+"."))
-import login_account_cookies
+sys.path.append(os.path.dirname(__file__))
+import login_account
 
 rainbow_word_list = ["#正能量偶像杨超越#必须支持杨超越[羞嗒嗒][羞嗒嗒][羞嗒嗒]@火箭少女101_杨超越",
                 "杨超越美爆了。 正妹[爱你][爱你][爱你][爱你]  我的妹妹就是美[爱你][爱你][爱你]  母爱变质的一天[爱你][爱你][爱你][爱你]  今天是女友粉[爱你][爱你][爱你][爱你]    想把她藏起来！可是不可以[爱你][爱你][爱你][爱你]@火箭少女101_杨超越 #正能量偶像杨超越#",
@@ -32,46 +32,29 @@ rainbow_word_list = ["#正能量偶像杨超越#必须支持杨超越[羞嗒嗒]
 
 test_count = 0
 next_rannum = 20
-
 if __name__ == '__main__':
-    print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
     if (len(sys.argv) < 3):
         print("请在后面加上你要评论的微博链接和要进行评论的账号")
     else:
-        account_index = int(sys.argv[1])
         while(True):
             test_count+=1
             print("评论次数",test_count)
             session = requests.session()
-            headers = {
-                "Host": "m.weibo.cn",
-                "Cookie": login_account_cookies.account_cookies[account_index]
-            }
             random_num = random.randint(0, len(rainbow_word_list) - 1)
             if(random_num != next_rannum):
                 next_rannum = random_num
                 comment_content = rainbow_word_list[next_rannum]
                 comment_id = int(sys.argv[2][-16:len(sys.argv[2])])
-                comment_url = "https://m.weibo.cn/api/comments/create"
-                st_url = "https://m.weibo.cn/api/config"
-                login_data = session.get(st_url, headers=headers).text
-                login_data_json = json.loads(login_data)["data"]
+                comment_url = "https://api.weibo.cn/2/comments/create?gsid="+ login_account.user_account[int(sys.argv[1])]["gsid"] +"&from=1885396040&c=weixinminiprogram&s="+ login_account.user_account[int(sys.argv[1])]['s']
                 postdata = {
-                    "content": comment_content,
-                    "mid": comment_id,
-                    "st":login_data_json["st"]
+                    "comment": comment_content,
+                    "id": comment_id
                 }
-                res = session.post(comment_url, data=postdata, headers=headers)
+                res = session.post(comment_url, data=postdata)
                 res_json = json.loads(res.text)
-                if res_json["ok"] == 0:
-                    print(account_index, res_json["msg"])
-                    account_index+=1
-                    if account_index == len(login_account_cookies.account_cookies) - 1:
-                        print("第一轮结束")
-                        print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-                        time.sleep(2000)
-                        account_index = 0
-                        continue
+                if list(res_json.keys())[0] == "errmsg":
+                    print(res_json["errmsg"])
+                    time.sleep(360)
                     continue
                 else:
                     continue
