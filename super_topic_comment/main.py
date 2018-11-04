@@ -10,8 +10,9 @@ import random
 import time
 import sys
 import os
-import sqlite3
 sys.path.append(os.path.abspath(os.path.dirname(os.getcwd())+os.path.sep+"."))
+import login_account_cookies
+print("超话打榜评论系统".center(30, "*"))
 
 rainbow_word_list = ["必须支持杨超越[羞嗒嗒][羞嗒嗒][羞嗒嗒]@火箭少女101_杨超越 #杨超越超新星全运会# #杨超越 射箭#",
                 "杨超越美爆了。 正妹[爱你][爱你][爱你][爱你]  我的妹妹就是美[爱你][爱你][爱你]  母爱变质的一天[爱你][爱你][爱你][爱你]  今天是女友粉[爱你][爱你][爱你][爱你]    想把她藏起来！可是不可以[爱你][爱你][爱你][爱你]@火箭少女101_杨超越 #杨超越超新星全运会# #杨超越 射箭#",
@@ -29,95 +30,73 @@ rainbow_word_list = ["必须支持杨超越[羞嗒嗒][羞嗒嗒][羞嗒嗒]@火
                 "有生之年，欣喜相逢。你就是我的天使。[羞嗒嗒][羞嗒嗒][羞嗒嗒]@火箭少女101_杨超越 #杨超越超新星全运会# #杨超越 射箭#",
                 "一时失语，这样自然精致豪无攻击的面容😘，超超越越加油！！[羞嗒嗒][羞嗒嗒][羞嗒嗒]@火箭少女101_杨超越 #杨超越超新星全运会# #杨超越 射箭#"]
 
-def auto_comment_func(weibolink,  account_group, each_comment_count, printToGui , conn):
-    """
-    自动评论系统
-    :param weibolink: 微博链接
-    :param account_group: 号组
-    :param each_comment_count: 单号评论次数
-    :param outputTextEdit: 输出系统
-    :return:
-    """
-    printToGui("微博自动评论系统")
-    next_rannum = 20
-    comment_count = 0
-    take_count = 0
+
+next_rannum = 20
+comment_count = 0
+take_count = 0
+
+if __name__ == '__main__':
     begin_time = time.time()
     print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
-    printToGui(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
-    account_index = 0
-    while(True):
-        session = requests.session()
-        headers = {
-            "Host": "m.weibo.cn",
-            "Cookie": account_group[account_index]
-        }
-        random_num = random.randint(0, len(rainbow_word_list) - 1)
-        if(random_num != next_rannum):
-            comment_count += 1
-            next_rannum = random_num
-            comment_content = rainbow_word_list[next_rannum]
-            comment_id = int(weibolink[-16:len(weibolink)])
-            comment_url = "https://m.weibo.cn/api/comments/create"
-            st_url = "https://m.weibo.cn/api/config"
-            login_data = session.get(st_url, headers=headers).text
-            login_data_json = json.loads(login_data)["data"]
-            postdata = {
-                "content": comment_content,
-                "mid": comment_id,
-                "st":login_data_json["st"]
+    if (len(sys.argv) < 3):
+        print("请在后面加上你要评论的微博链接和要进行评论号组")
+    else:
+        if sys.argv[2] == "1":
+            account_cookies = login_account_cookies.account_cookies_1
+        elif sys.argv[2] == "2":
+            account_cookies = login_account_cookies.account_cookies_2
+        elif sys.argv[2] == "3":
+            account_cookies = login_account_cookies.account_cookies_3
+        else:
+            account_cookies = []
+            print("没有这组号")
+            exit()
+        account_index = 0
+        print("账号id", account_index+1)
+        while(True):
+            session = requests.session()
+            headers = {
+                "Host": "m.weibo.cn",
+                "Cookie": account_cookies[account_index]
             }
-            res = session.post(comment_url, data=postdata, headers=headers)
-            if res.text != "File not found.\n":
+            random_num = random.randint(0, len(rainbow_word_list) - 1)
+            if(random_num != next_rannum):
+                print("评论次数", comment_count+1)
+                comment_count += 1
+                next_rannum = random_num
+                comment_content = rainbow_word_list[next_rannum]
+                comment_id = int(sys.argv[1][-16:len(sys.argv[1])])
+                comment_url = "https://m.weibo.cn/api/comments/create"
+                st_url = "https://m.weibo.cn/api/config"
+                login_data = session.get(st_url, headers=headers).text
+                login_data_json = json.loads(login_data)["data"]
+                print(login_data_json)
+                postdata = {
+                    "content": comment_content,
+                    "mid": comment_id,
+                    "st":login_data_json["st"]
+                }
+                res = session.post(comment_url, data=postdata, headers=headers)
                 res_json = json.loads(res.text)
-                if res_json["ok"] == 0 or comment_count == each_comment_count:
+                if res_json["ok"] == 0 or comment_count == 1:
                     if res_json["ok"] == 0:
-                        if res_json["errno"] == "20003" or res_json["errno"] == "20034":
-                            c = conn.cursor()
-                            delete_cmd = "DELETE FROM WeiboCookies WHERE \"COOKIES\" = " + "\"" + account_group[account_index] + "\""
-                            c.execute(delete_cmd)
-                            conn.commit()
-                            printToGui(res_json["msg"])
+                        print(res_json["msg"])
                     comment_count = 0
-                    print("".center(30, "*"))
-                    printToGui(str("".center(30, "*")))
-                    print("账号id "+str(account_index + 1))
-                    printToGui("账号id "+str(account_index + 1))
-                    print(res_json)
-                    printToGui(str(res_json))
                     account_index+=1
-                    if account_index == len(account_group):
-                        print("第" + str(take_count+1) + "轮结束")
-                        printToGui("第" + str(take_count+1) + "轮结束")
-                        end_time = time.time()
+                    print("账号id", account_index+1)
+                    if account_index == len(account_cookies):
+                        print("第" + str(take_count) + "轮结束")
                         print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-                        printToGui(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-                        spend_time = end_time - begin_time
-                        print("共花费"+ str(spend_time) +"秒")
-                        printToGui("共花费"+ str(spend_time) +"秒")
+                        time.sleep(1200)
                         take_count += 1
-                        return 0
+                        account_index = 0
+                        continue
                     else:
                         continue
                 else:
                     continue
             else:
-                print("账号id "+str(account_index + 1)+" 此号未绑定")
-                printToGui("账号id "+str(account_index + 1)+"此号未绑定")
-                print("".center(30, "*"))
-                printToGui(str("".center(30, "*")))
-                account_index += 1
-                if account_index == len(account_group):
-                    print("第" + str(take_count + 1) + "轮结束")
-                    printToGui("第" + str(take_count + 1) + "轮结束")
-                    end_time = time.time()
-                    print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-                    printToGui(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-                    spend_time = end_time - begin_time
-                    print("共花费" + str(spend_time) + "秒")
-                    printToGui("共花费" + str(spend_time) + "秒")
-                    take_count += 1
-                    return 0
-        else:
-            continue
-
+                continue
+    end_time = time.time()
+    print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+    print("共花费%d秒" % (end_time - begin_time))

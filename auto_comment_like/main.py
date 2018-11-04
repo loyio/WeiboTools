@@ -25,6 +25,8 @@ if __name__ == '__main__':
             account_cookies = login_account_cookies.account_cookies_1
         elif sys.argv[2] == "2":
             account_cookies = login_account_cookies.account_cookies_2
+        elif sys.argv[2] == "3":
+            account_cookies = login_account_cookies.account_cookies_3
         else:
             account_cookies = []
             print("没有这组号")
