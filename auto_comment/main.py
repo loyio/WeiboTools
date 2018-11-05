@@ -71,7 +71,13 @@ def auto_comment_func(weibolink,  account_group, each_comment_count, printToGui 
             if res.text != "File not found.\n":
                 res_json = json.loads(res.text)
                 if res_json["ok"] == 0 or comment_count == each_comment_count:
+                    print("".center(30, "*"))
+                    printToGui(str("".center(30, "*")))
+                    print("账号id " + str(account_index + 1))
+                    printToGui("账号id " + str(account_index + 1))
                     if res_json["ok"] == 0:
+                        print(res_json)
+                        printToGui(str(res_json))
                         if res_json["errno"] == "20003" or res_json["errno"] == "20034":
                             c = conn.cursor()
                             delete_cmd = "DELETE FROM WeiboCookies WHERE \"COOKIES\" = " + "\"" + account_group[account_index] + "\""
@@ -79,12 +85,6 @@ def auto_comment_func(weibolink,  account_group, each_comment_count, printToGui 
                             conn.commit()
                             printToGui(res_json["msg"])
                     comment_count = 0
-                    print("".center(30, "*"))
-                    printToGui(str("".center(30, "*")))
-                    print("账号id "+str(account_index + 1))
-                    printToGui("账号id "+str(account_index + 1))
-                    print(res_json)
-                    printToGui(str(res_json))
                     account_index+=1
                     if account_index == len(account_group):
                         print("第" + str(take_count+1) + "轮结束")

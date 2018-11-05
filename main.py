@@ -20,16 +20,18 @@ from auto_post.main import auto_post_weibo
 from auto_repost.main import auto_repost_func
 from auto_follow.main import auto_follow
 from energy_hitting.main import post_weibo, repost_weibo, cheer_card
+from fake_login.main import fake_login
+from auto_like.main import auto_like
 import requests
 
 
-conn = sqlite3.connect("weibo_account.db")
+conn = sqlite3.connect("weibo_account.sqlite")
 
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('微博自动转赞评系统')
+        self.setWindowTitle('微博自动转赞评系统(By susmote)')
         #设置图标
         icon = QIcon()
         icon.addPixmap(QPixmap("favicon.ico"), QIcon.Normal, QIcon.Off)
@@ -49,15 +51,17 @@ class MainWindow(QWidget):
         btnInputWeiboAccount.clicked.connect(self.click_btnInputWeiboAccount)
         btnWeiboData = QPushButton("查看微博数据✔️", self)
         btnWeiboData.clicked.connect(self.click_btnGetUserInfo)
-        btnUpgradeWeibo = QPushButton("微博自动养号✔", self)
+        btnUpgradeWeibo = QPushButton("微博自动养号✔️", self)
         btnUpgradeWeibo.clicked.connect(self.click_btnWeiboUpgrade)
         btnAutoComment = QPushButton("微博自动刷评✔️", self)
         btnAutoComment.clicked.connect(self.click_btnAutoComment)
-        btnAutoCommentLike = QPushButton("微博评论点赞👍", self)
-        btnAutoLike = QPushButton("微博自动点赞👍", self)
-        btnPostWeibo = QPushButton("自动发布微博✔️", self)
+        btnAutoCommentLike = QPushButton("微博评论点赞✔️", self)
+        btnAutoCommentLike.clicked.connect(self.click_btnAutoCommentLike)
+        btnAutoLike = QPushButton("微博自动点赞✔️", self)
+        btnAutoLike.clicked.connect(self.click_btnAutoLike)
+        btnPostWeibo = QPushButton("自动发布微博✔️️", self)
         btnPostWeibo.clicked.connect(self.click_btnAutoPost)
-        btnRepostWeibo = QPushButton("自动转发微博✔", self)
+        btnRepostWeibo = QPushButton("自动转发微博✔️", self)
         btnRepostWeibo.clicked.connect(self.click_btnRepostWeibo)
         btnSuperstar = QPushButton("超新星全运会✔️", self)
         btnSuperstar.clicked.connect(self.click_btnSuperstar)
@@ -102,10 +106,24 @@ class MainWindow(QWidget):
         self.AutoPostWindow.show()
         self.show()
 
+    # 自动转发微博
     def click_btnRepostWeibo(self):
         self.AutoRepostWindow = WeiboAutoRepost()
         self.hide()
         self.AutoRepostWindow.show()
+        self.show()
+
+    # 评论点赞
+    def click_btnAutoCommentLike(self):
+        msg_box = QMessageBox(QMessageBox.Warning, "警告", "功能暂时不开放")
+        msg_box.show()
+        msg_box.exec_()
+
+    # 微博点赞
+    def click_btnAutoLike(self):
+        self.AutoLikeWindow = WeiboAutoLike()
+        self.hide()
+        self.AutoLikeWindow.show()
         self.show()
 
     # 获取微博数据
@@ -215,6 +233,7 @@ class WeiboInputCookies(QWidget):
         cmd = "INSERT INTO WeiboCookies VALUES(NULL, \'" + username + "\', \'" + password + "\', \"\", \"\", \"\");"
         c.execute(cmd)
         conn.commit()
+        fake_login(username, password, conn)
         self.AccountInput.setText("")
         self.PasswordInput.setText("")
         self.click_showcookies()
@@ -578,6 +597,70 @@ class WeiboAutoComment(QWidget):
             for i in range(int(up_down[0])-1, int(up_down[1])):
                 use_cookies.append(cookies_list[i][4])
             auto_comment_func(self.inputWeiboLink.text(), use_cookies, self.comment_count_combo.currentIndex()+1, self.printToGui, conn)
+            self.generate_combo()
+            self.inputWeiboLink.setText("")
+        else:
+            msg_box = QMessageBox(QMessageBox.Warning, "警告", "微博链接为空")
+            msg_box.show()
+            msg_box.exec_()
+
+# 微博自动点赞
+class WeiboAutoLike(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('微博自动点赞系统')
+        self.setMaximumSize(600, 400)
+        self.setWindowFlags(Qt.WindowMinimizeButtonHint)
+        self.setWindowFlag(Qt.WindowCloseButtonHint)
+        self.setFixedSize(600, 400)
+        #设置图标
+        icon = QIcon()
+        icon.addPixmap(QPixmap("favicon.ico"), QIcon.Normal, QIcon.Off)
+        self.setWindowIcon(icon)
+        self.inputWeiboLink = QLineEdit("")
+        self.outputResult = QTextEdit("")
+        self.outputResult.setReadOnly(True)
+        # 生成账号组下拉菜单
+        self.generate_combo()
+        self.initUI()
+
+    def initUI(self):
+        self.setGeometry(400, 200, 600, 400)
+        lblTitle = QLabel("微博链接:")
+        btnInsure = QPushButton("开始点赞", self)
+        btnInsure.clicked.connect(self.click_btnInsure)
+        mainLayout = QGridLayout()
+        mainLayout.addWidget(lblTitle, 0, 0, 1, 1)
+        mainLayout.addWidget(self.inputWeiboLink, 0, 1, 1, 5)
+        mainLayout.addWidget(self.accout_group_combo, 0, 6, 1, 3)
+        mainLayout.addWidget(btnInsure, 0, 9, 1, 1)
+        mainLayout.addWidget(self.outputResult, 1, 0, 1, 10)
+        self.setLayout(mainLayout)
+
+    def printToGui(self, text):
+        self.outputResult.append(text)
+
+    def generate_combo(self):
+        self.accout_group_combo = QComboBox()
+        c = conn.cursor()
+        cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
+        n = 0
+        for i in range(0, len(cookies_list)):
+            n += 1
+            if n == 20 or len(cookies_list)-(i + 1) == 0:
+                self.accout_group_combo.addItem(str(i+2-n) + "-" + str(i+1))
+                n = 0
+
+    @pyqtSlot()
+    def click_btnInsure(self):
+        if (self.inputWeiboLink.text() != ""):
+            c = conn.cursor()
+            cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
+            up_down = self.accout_group_combo.currentText().split("-")
+            use_cookies = []
+            for i in range(int(up_down[0])-1, int(up_down[1])):
+                use_cookies.append(cookies_list[i][4])
+            auto_like(self.inputWeiboLink.text(), use_cookies, self.printToGui, conn)
             self.generate_combo()
             self.inputWeiboLink.setText("")
         else:
