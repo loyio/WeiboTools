@@ -814,6 +814,7 @@ class WeiboSuperStar(QWidget):
         self.setWindowTitle('超新星全运会打榜操作')
         self.setMaximumSize(600, 400)
         self.setWindowFlags(Qt.WindowMinimizeButtonHint)
+        self.setWindowFlag(Qt.WindowCloseButtonHint)
         self.setFixedSize(600, 400)
         #设置图标
         icon = QIcon()
