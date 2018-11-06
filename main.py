@@ -283,9 +283,15 @@ class WeiboInputCookies(QWidget):
         if self.DeleteIndex.text() != "":
             c = conn.cursor()
             cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-            cmd = "DELETE FROM WeiboCookies  WHERE USERNAME = \"" + cookies_list[int(self.DeleteIndex.text()) - 1][1] + "\""
-            c.execute(cmd)
-            conn.commit()
+            if int(self.DeleteIndex.text()) - 1 < len(cookies_list):
+                print("之前")
+                cmd = "DELETE FROM WeiboCookies  WHERE USERNAME = \"" + cookies_list[int(self.DeleteIndex.text()) - 1][1] + "\""
+                c.execute(cmd)
+                conn.commit()
+            else:
+                msg_box = QMessageBox(QMessageBox.Warning, "警告", "你的操作有误")
+                msg_box.show()
+                msg_box.exec_()
             self.accout_combo.setCurrentIndex(0)
             self.click_showcookies()
         else:
@@ -383,22 +389,28 @@ class WeiboInputAccount(QWidget):
 
 
     def generate_combo(self):
-        self.accout_combo = QComboBox()
-        self.accout_combo.currentIndexChanged.connect(self.fill_lineEdit)
-        c = conn.cursor()
-        cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-        for i in range(0, len(cookies_list)):
-            self.accout_combo.addItem(str(i+1))
+        try:
+            self.accout_combo = QComboBox()
+            self.accout_combo.currentIndexChanged.connect(self.fill_lineEdit)
+            c = conn.cursor()
+            cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
+            for i in range(0, len(cookies_list)):
+                self.accout_combo.addItem(str(i+1))
+        except Exception as e:
+            print(e)
 
     def fill_lineEdit(self):
         self.accout_combo.currentText()
         c = conn.cursor()
-        cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-        current_index = int(self.accout_combo.currentText()) - 1
-        print(current_index)
-        self.AccountInput.setText(cookies_list[current_index][1])
-        self.PasswordInput.setText(cookies_list[current_index][2])
-        self.judge_cookies_useful()
+        try:
+            cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
+            current_index = int(self.accout_combo.currentText()) - 1
+            print(current_index)
+            self.AccountInput.setText(cookies_list[current_index][1])
+            self.PasswordInput.setText(cookies_list[current_index][2])
+            self.judge_cookies_useful()
+        except Exception as e:
+            print(e)
 
     @pyqtSlot()
     def click_refresh(self):
@@ -410,24 +422,30 @@ class WeiboInputAccount(QWidget):
 
     @pyqtSlot()
     def judge_cookies_useful(self):
-        c = conn.cursor()
-        cmd = "SELECT * FROM WeiboCookies WHERE USERNAME = \""+ self.AccountInput.text() + "\""
-        print(cmd)
-        cookies = c.execute(cmd).fetchall()
-        print(cookies)
-        headers = {
-            "Referer": "https://m.weibo.cn/",
-            "Cookie": cookies[0][4]
-        }
-        session = requests.session()
-        judge_login_res = session.get("https://m.weibo.cn/api/config", headers=headers).text
-        judge_login_res_json = json.loads(judge_login_res)
-        if judge_login_res_json["data"]["login"] == True:
-            self.lblState.setText("Cookies有效")
-            print(1, "自动登录成功")
-        else:
-            self.lblState.setText("Cookies无效")
-            print("不能直接登录,需要进行手势验证码验证")
+        try:
+            c = conn.cursor()
+            cmd = "SELECT * FROM WeiboCookies WHERE USERNAME = \""+ self.AccountInput.text() + "\""
+            print(cmd)
+            cookies = c.execute(cmd).fetchall()
+            print(cookies)
+            headers = {
+                "Referer": "https://m.weibo.cn/",
+                "Cookie": cookies[0][4]
+            }
+            session = requests.session()
+            judge_login_res = session.get("https://m.weibo.cn/api/config", headers=headers).text
+            judge_login_res_json = json.loads(judge_login_res)
+            if judge_login_res_json["data"]["login"] == True:
+                self.lblState.setText("Cookies有效")
+                print(1, "自动登录成功")
+            else:
+                self.lblState.setText("Cookies无效")
+                print("不能直接登录,需要进行手势验证码验证")
+        except Exception as e:
+            msg_box = QMessageBox(QMessageBox.Warning, "警告", str(e))
+            msg_box.show()
+            msg_box.exec_()
+            exit()
 
 
 
@@ -544,21 +562,7 @@ class WeiboUpgradeAccount(QWidget):
     # 自动批量改名
     @pyqtSlot()
     def click_btnAutoChangeName(self):
-        if (self.inputWeiboId.text() != ""):
-            self.outputResult.clear()
-            if self.NameRadioButton.isChecked():
-                getUesrInfo(0, self.inputWeiboId.text(), self.printToGui)
-            if self.UidRadioButton.isChecked():
-                getUesrInfo(1, self.inputWeiboId.text(), self.printToGui)
-        else:
-            if self.NameRadioButton.isChecked():
-                msg_box = QMessageBox(QMessageBox.Warning, "警告", "用户名为空")
-                msg_box.show()
-                msg_box.exec_()
-            if self.UidRadioButton.isChecked():
-                msg_box = QMessageBox(QMessageBox.Warning, "警告", "uid为空")
-                msg_box.show()
-                msg_box.exec_()
+        pass
 
 
 
@@ -626,7 +630,13 @@ class WeiboAutoComment(QWidget):
             use_cookies = []
             for i in range(int(up_down[0])-1, int(up_down[1])):
                 use_cookies.append(cookies_list[i][4])
-            auto_comment_func(self.inputWeiboLink.text(), use_cookies, self.comment_count_combo.currentIndex()+1, self.printToGui, conn)
+            try:
+                auto_comment_func(self.inputWeiboLink.text(), use_cookies, self.comment_count_combo.currentIndex()+1, self.printToGui, conn)
+            except Exception as e:
+                msg_box = QMessageBox(QMessageBox.Warning, "警告", e)
+                msg_box.show()
+                msg_box.exec_()
+
             self.generate_combo()
             self.inputWeiboLink.setText("")
         else:
@@ -906,7 +916,13 @@ class WeiboSuperStar(QWidget):
         use_cookies = []
         for i in range(int(up_down[0])-1, int(up_down[1])):
             use_cookies.append(cookies_list[i][4])
-        repost_weibo(use_cookies, self.printToGui)
+        try:
+            repost_weibo(use_cookies, self.printToGui)
+        except Exception as e:
+            msg_box = QMessageBox(QMessageBox.Warning, "警告", e)
+            msg_box.show()
+            msg_box.exec_()
+            exit()
 
     # 加油卡
     @pyqtSlot()
@@ -917,15 +933,15 @@ class WeiboSuperStar(QWidget):
         use_cookies = []
         for i in range(int(up_down[0])-1, int(up_down[1])):
             use_cookies.append(cookies_list[i][4])
-        cheer_card(use_cookies, self.printToGui)
-
+        try:
+            cheer_card(use_cookies, self.printToGui)
+        except Exception as e:
+            msg_box = QMessageBox(QMessageBox.Warning, "警告", e)
+            msg_box.show()
+            msg_box.exec_()
+            exit()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    try:
-        mainApp = MainWindow()
-    except Exception as e:
-        msg_box = QMessageBox(QMessageBox.Warning, "警告", "微博链接为空")
-        msg_box.show()
-        msg_box.exec_()
+    mainApp = MainWindow()
     sys.exit(app.exec_())

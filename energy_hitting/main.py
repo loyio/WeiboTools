@@ -63,14 +63,16 @@ def repost_weibo(account_cookies, printToGui):
             "page_type": "tvenergy_index_star"
         }
         repost_weibo_res = session.post(post_weibo_url, data=post_data, headers=headers)
-        print(repost_weibo_res.text)
-        repost_weibo_res_json = json.loads(repost_weibo_res.text)
-        if repost_weibo_res_json["code"] == "100000":
-            print(i+1,"转发微博成功 ", repost_weibo_res_json["msg"])
-            printToGui(str(i+1)+" 转发微博成功 "+repost_weibo_res_json["msg"])
-        else:
-            print(i+1,repost_weibo_res_json["msg"])
-            printToGui(str(i+1)+repost_weibo_res_json["msg"])
+        try:
+            repost_weibo_res_json = json.loads(repost_weibo_res.text)
+            if repost_weibo_res_json["code"] == "100000":
+                print(i+1,"转发微博成功 ", repost_weibo_res_json["msg"])
+                printToGui(str(i+1)+" 转发微博成功 "+repost_weibo_res_json["msg"])
+            else:
+                print(i+1,repost_weibo_res_json["msg"])
+                printToGui(str(i+1)+repost_weibo_res_json["msg"])
+        except Exception as e:
+            printToGui(str(e))
     end_time = time.time()
     print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
     printToGui(str(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))))
