@@ -922,5 +922,10 @@ class WeiboSuperStar(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    mainApp = MainWindow()
+    try:
+        mainApp = MainWindow()
+    except Exception as e:
+        msg_box = QMessageBox(QMessageBox.Warning, "警告", "微博链接为空")
+        msg_box.show()
+        msg_box.exec_()
     sys.exit(app.exec_())
