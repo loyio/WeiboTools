@@ -44,14 +44,14 @@ c.execute('''CREATE TABLE WeiboCookies
 # for i in range(0, len(Account_list)):
 #     print(Account_list[i][1])
 
-# with open('weiboAccount.txt', 'r') as f:
-#     while True:
-#         account = f.readline().strip()
-#         if account == "":
-#             break
-#         accout_list = account.split("----")
-#         cmd = "INSERT INTO WeiboCookies VALUES(NULL, \'" + accout_list[0] + "\', \'" + accout_list[1] + "\', \"\");"
-#         c.execute(cmd)
-#         conn.commit()
+with open('weiboAccount.txt', 'r') as f:
+    while True:
+        account = f.readline().strip()
+        if account == "":
+            break
+        accout_list = account.split("----")
+        cmd = "INSERT INTO WeiboCookies VALUES(NULL, \'" + accout_list[0] + "\', \'" + accout_list[1] + "\', \"\");"
+        c.execute(cmd)
+        conn.commit()
 conn.commit()
 conn.close()

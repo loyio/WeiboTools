@@ -162,6 +162,9 @@ class WeiboInputCookies(QWidget):
         icon.addPixmap(QPixmap("favicon.ico"), QIcon.Normal, QIcon.Off)
         self.setWindowIcon(icon)
 
+        self.FilePathInput = QLineEdit()
+        self.AccountFileOpen = QFileDialog()
+
         self.AccountInput = QLineEdit()
         self.AccountInput.setPlaceholderText("请输入微博账号")
         self.PasswordInput = QLineEdit()
@@ -179,6 +182,10 @@ class WeiboInputCookies(QWidget):
 
     def initUI(self):
         self.setGeometry(400, 200, 600, 400)
+        btnFileDialog = QPushButton("选择文件",self)
+        btnFileDialog.clicked.connect(self.click_btnFileDialog)
+        btnInsureBatchInsert = QPushButton("批量插入", self)
+        btnInsureBatchInsert.clicked.connect(self.click_btnInsureBatchInsert)
         btnInsureInsert = QPushButton("确定插入", self)
         btnInsureInsert.clicked.connect(self.click_btnInsureInsert)
         btnInsureChange = QPushButton("确定修改", self)
@@ -188,16 +195,19 @@ class WeiboInputCookies(QWidget):
         btnLookcookies = QPushButton("刷新数据库", self)
         btnLookcookies.clicked.connect(self.click_showcookies)
         mainLayout = QGridLayout()
-        mainLayout.addWidget(self.AccountInput, 0, 0, 1, 3)
-        mainLayout.addWidget(self.PasswordInput, 0, 3, 1, 3)
-        mainLayout.addWidget(btnInsureInsert, 0, 6, 1, 2)
-        mainLayout.addWidget(self.accout_combo, 1, 0, 1, 1)
-        mainLayout.addWidget(self.CookiesInput, 1, 1, 1, 4)
-        mainLayout.addWidget(btnInsureChange, 1, 5, 1, 1)
-        mainLayout.addWidget(self.DeleteIndex, 1, 6, 1, 1)
-        mainLayout.addWidget(btnDeleteData, 1, 7, 1, 1)
-        mainLayout.addWidget(btnLookcookies, 2, 0, 1, 8)
-        mainLayout.addWidget(self.table, 3, 0, 1, 8)
+        mainLayout.addWidget(self.FilePathInput, 0, 0, 1, 5)
+        mainLayout.addWidget(btnFileDialog, 0, 5, 1, 1)
+        mainLayout.addWidget(btnInsureBatchInsert, 0, 6, 1, 2)
+        mainLayout.addWidget(self.AccountInput, 1, 0, 1, 3)
+        mainLayout.addWidget(self.PasswordInput, 1, 3, 1, 3)
+        mainLayout.addWidget(btnInsureInsert, 1, 6, 1, 2)
+        mainLayout.addWidget(self.accout_combo, 2, 0, 1, 1)
+        mainLayout.addWidget(self.CookiesInput, 2, 1, 1, 4)
+        mainLayout.addWidget(btnInsureChange, 2, 5, 1, 1)
+        mainLayout.addWidget(self.DeleteIndex, 2, 6, 1, 1)
+        mainLayout.addWidget(btnDeleteData, 2, 7, 1, 1)
+        mainLayout.addWidget(btnLookcookies, 3, 0, 1, 8)
+        mainLayout.addWidget(self.table, 4, 0, 1, 8)
         self.setLayout(mainLayout)
 
     def cookies_table(self):
@@ -224,6 +234,26 @@ class WeiboInputCookies(QWidget):
             self.CookiesInput.setText(cookies_list[current_index][4])
         else:
             pass
+
+    @pyqtSlot()
+    def click_btnFileDialog(self):
+        absolute_path = QFileDialog.getOpenFileName(self, 'Open file','.', "txt files (*.txt)")
+        print(absolute_path)
+        self.FilePathInput.setText(absolute_path[0])
+
+    @pyqtSlot()
+    def click_btnInsureBatchInsert(self):
+        c = conn.cursor()
+        with open(self.FilePathInput.text(), 'r') as f:
+            while True:
+                account = f.readline().strip()
+                if account == "":
+                    break
+                account_list = account.split("----")
+                cmd = "INSERT INTO WeiboCookies VALUES(NULL, \'" + account_list[0] + "\', \'" + account_list[1] + "\', \'\', \'\', \'\');"
+                c.execute(cmd)
+                conn.commit()
+        self.click_showcookies()
 
     @pyqtSlot()
     def click_btnInsureInsert(self):
