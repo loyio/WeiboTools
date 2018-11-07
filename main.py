@@ -17,7 +17,7 @@ sys.path.append(os.path.abspath(os.path.dirname(os.getcwd())+os.path.sep+"."))
 from auto_comment.main import auto_comment_func
 from weibo_data.get_user_info import getUesrInfo
 from auto_post.main import auto_post_weibo
-from auto_repost.main import auto_repost_func
+from auto_repost.main import auto_repost_func, auto_repost_test_func
 from auto_follow.main import auto_follow
 from energy_hitting.main import post_weibo, repost_weibo, cheer_card
 from fake_login.main import fake_login
@@ -170,11 +170,19 @@ class WeiboInputCookies(QWidget):
         self.PasswordInput = QLineEdit()
         self.PasswordInput.setPlaceholderText("请输入微博密码")
 
-        self.accout_combo = QComboBox()
+        #账号组名
+        self.AccountGroupNameInput = QLineEdit()
+        self.AccountGroupNameInput.setPlaceholderText("号组名")
+        self.AccountIndexInput = QLineEdit()
+        self.AccountIndexInput.setPlaceholderText("账号ID")
+
+        self.account_combo = QComboBox()
+        self.accountgroup_combo = QComboBox()
         self.CookiesInput = QLineEdit()
         self.DeleteIndex = QLineEdit()
         self.DeleteIndex.setPlaceholderText("索引")
         self.generate_combo()
+        self.generate_accountgroup_combo()
         self.fill_lineEdit()
         self.cookies_table()
         self.click_showcookies()
@@ -192,6 +200,10 @@ class WeiboInputCookies(QWidget):
         btnInsureChange.clicked.connect(self.click_btnInsureChange)
         btnDeleteData = QPushButton("删除此行", self)
         btnDeleteData.clicked.connect(self.click_btnDeleteData)
+        btnInsertAccountGroup = QPushButton("添加号组")
+        btnInsertAccountGroup.clicked.connect(self.click_btnInsertAccountGroup)
+        btnChangeAccountGroup = QPushButton("改变号组")
+        btnChangeAccountGroup.clicked.connect(self.click_btnChangeAccountGroup)
         btnLookcookies = QPushButton("刷新数据库", self)
         btnLookcookies.clicked.connect(self.click_showcookies)
         mainLayout = QGridLayout()
@@ -201,36 +213,49 @@ class WeiboInputCookies(QWidget):
         mainLayout.addWidget(self.AccountInput, 1, 0, 1, 3)
         mainLayout.addWidget(self.PasswordInput, 1, 3, 1, 3)
         mainLayout.addWidget(btnInsureInsert, 1, 6, 1, 2)
-        mainLayout.addWidget(self.accout_combo, 2, 0, 1, 1)
+        mainLayout.addWidget(self.account_combo, 2, 0, 1, 1)
         mainLayout.addWidget(self.CookiesInput, 2, 1, 1, 4)
         mainLayout.addWidget(btnInsureChange, 2, 5, 1, 1)
         mainLayout.addWidget(self.DeleteIndex, 2, 6, 1, 1)
         mainLayout.addWidget(btnDeleteData, 2, 7, 1, 1)
-        mainLayout.addWidget(btnLookcookies, 3, 0, 1, 8)
-        mainLayout.addWidget(self.table, 4, 0, 1, 8)
+        mainLayout.addWidget(self.AccountGroupNameInput, 3, 0, 1, 2)
+        mainLayout.addWidget(btnInsertAccountGroup, 3, 2, 1, 2)
+        mainLayout.addWidget(self.AccountIndexInput, 3, 4, 1, 1)
+        mainLayout.addWidget(self.accountgroup_combo, 3, 5, 1, 1)
+        mainLayout.addWidget(btnChangeAccountGroup, 3, 6, 1, 2)
+        mainLayout.addWidget(btnLookcookies, 4, 0, 1, 8)
+        mainLayout.addWidget(self.table, 5, 0, 1, 8)
         self.setLayout(mainLayout)
 
     def cookies_table(self):
         self.table = QTableWidget()
-        horizontalHeader = ["ID", "账号", "密码", "提示", "Cookies", "状态"]
-        self.table.setColumnCount(6)
+        horizontalHeader = ["ID", "账号", "密码", "提示", "Cookies", "状态", "号组"]
+        self.table.setColumnCount(7)
         self.table.setHorizontalHeaderLabels(horizontalHeader)
 
 
+    def generate_accountgroup_combo(self):
+        for i in range(0, self.accountgroup_combo.count()):
+            self.accountgroup_combo.removeItem(0)
+        c = conn.cursor()
+        accountgroup_list = c.execute("SELECT * FROM WeiboAccountGroup").fetchall()
+        for i in range(0, len(accountgroup_list)):
+            self.accountgroup_combo.addItem(accountgroup_list[i][1])
+
     def generate_combo(self):
-        for i in range(0, self.accout_combo.count()):
-            self.accout_combo.removeItem(0)
-        self.accout_combo.currentIndexChanged.connect(self.fill_lineEdit)
+        for i in range(0, self.account_combo.count()):
+            self.account_combo.removeItem(0)
+        self.account_combo.currentIndexChanged.connect(self.fill_lineEdit)
         c = conn.cursor()
         cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
         for i in range(0, len(cookies_list)):
-            self.accout_combo.addItem(str(i+1))
+            self.account_combo.addItem(str(i+1))
 
     def fill_lineEdit(self):
         c = conn.cursor()
         cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-        if self.accout_combo.currentText() != "" and int(self.accout_combo.currentText()) - 1 != len(cookies_list):
-            current_index = int(self.accout_combo.currentText()) - 1
+        if self.account_combo.currentText() != "" and int(self.account_combo.currentText()) - 1 != len(cookies_list):
+            current_index = int(self.account_combo.currentText()) - 1
             self.CookiesInput.setText(cookies_list[current_index][4])
         else:
             pass
@@ -300,6 +325,49 @@ class WeiboInputCookies(QWidget):
             msg_box.exec_()
 
 
+    # 插入号组
+    @pyqtSlot()
+    def click_btnInsertAccountGroup(self):
+        if self.AccountGroupNameInput.text() != "":
+            c = conn.cursor()
+            cmd = "INSERT INTO WeiboAccountGroup VALUES(NULL, \'" + self.AccountGroupNameInput.text() + "\', \"\");"
+            try:
+                c.execute(cmd)
+            except Exception as e:
+                msg_box = QMessageBox(QMessageBox.Warning, "警告", "你输入的号组名已存在")
+                msg_box.show()
+                msg_box.exec_()
+            conn.commit()
+            self.generate_accountgroup_combo()
+            self.AccountGroupNameInput.setText("")
+
+        else:
+            msg_box = QMessageBox(QMessageBox.Warning, "警告", "请输入你要添加的号组名")
+            msg_box.show()
+            msg_box.exec_()
+
+    # 改变号组
+    @pyqtSlot()
+    def click_btnChangeAccountGroup(self):
+        if self.AccountIndexInput.text() != "":
+            c = conn.cursor()
+            cmd = "UPDATE WeiboCookies SET GROUPID= \"" + self.accountgroup_combo.currentText() + "\" WHERE ID = "+ self.AccountIndexInput.text()
+            try:
+                c.execute(cmd)
+            except Exception as e:
+                msg_box = QMessageBox(QMessageBox.Warning, "警告", str(e))
+                msg_box.show()
+                msg_box.exec_()
+            conn.commit()
+            self.click_showcookies()
+            self.AccountIndexInput.setText("")
+
+        else:
+            msg_box = QMessageBox(QMessageBox.Warning, "警告", "没有输入账号ID")
+            msg_box.show()
+            msg_box.exec_()
+
+
     @pyqtSlot()
     def click_showcookies(self):
         c = conn.cursor()
@@ -313,6 +381,7 @@ class WeiboInputCookies(QWidget):
             self.table.setItem(i, 3, QTableWidgetItem(cookies_list[i][3]))
             self.table.setItem(i, 4, QTableWidgetItem(cookies_list[i][4]))
             self.table.setItem(i, 5, QTableWidgetItem(cookies_list[i][5]))
+            self.table.setItem(i, 6, QTableWidgetItem(cookies_list[i][6]))
         self.generate_combo()
 
 
@@ -607,14 +676,12 @@ class WeiboAutoComment(QWidget):
 
     def generate_combo(self):
         self.accout_group_combo = QComboBox()
+        for i in range(0, self.accout_group_combo.count()):
+            self.accout_group_combo.removeItem(0)
         c = conn.cursor()
-        cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-        n = 0
-        for i in range(0, len(cookies_list)):
-            n += 1
-            if n == 20 or len(cookies_list)-(i + 1) == 0:
-                self.accout_group_combo.addItem(str(i+2-n) + "-" + str(i+1))
-                n = 0
+        accountgroup_list = c.execute("SELECT * FROM WeiboAccountGroup").fetchall()
+        for i in range(0, len(accountgroup_list)):
+            self.accout_group_combo.addItem(accountgroup_list[i][1])
 
     def generate_comment_count_combo(self):
         self.comment_count_combo = QComboBox()
@@ -626,14 +693,17 @@ class WeiboAutoComment(QWidget):
         if (self.inputWeiboLink.text() != ""):
             c = conn.cursor()
             cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-            up_down = self.accout_group_combo.currentText().split("-")
             use_cookies = []
-            for i in range(int(up_down[0])-1, int(up_down[1])):
-                use_cookies.append(cookies_list[i][4])
+            for i in range(0, len(cookies_list)):
+                if(cookies_list[i][6] == self.accout_group_combo.currentText()):
+                    use_cookies.append(cookies_list[i][4])
+                else:
+                    pass
+            print(len(use_cookies))
             try:
                 auto_comment_func(self.inputWeiboLink.text(), use_cookies, self.comment_count_combo.currentIndex()+1, self.printToGui, conn)
             except Exception as e:
-                msg_box = QMessageBox(QMessageBox.Warning, "警告", e)
+                msg_box = QMessageBox(QMessageBox.Warning, "警告", str(e))
                 msg_box.show()
                 msg_box.exec_()
 
@@ -682,25 +752,30 @@ class WeiboAutoLike(QWidget):
 
     def generate_combo(self):
         self.accout_group_combo = QComboBox()
+        for i in range(0, self.accout_group_combo.count()):
+            self.accout_group_combo.removeItem(0)
         c = conn.cursor()
-        cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-        n = 0
-        for i in range(0, len(cookies_list)):
-            n += 1
-            if n == 20 or len(cookies_list)-(i + 1) == 0:
-                self.accout_group_combo.addItem(str(i+2-n) + "-" + str(i+1))
-                n = 0
+        accountgroup_list = c.execute("SELECT * FROM WeiboAccountGroup").fetchall()
+        for i in range(0, len(accountgroup_list)):
+            self.accout_group_combo.addItem(accountgroup_list[i][1])
 
     @pyqtSlot()
     def click_btnInsure(self):
         if (self.inputWeiboLink.text() != ""):
             c = conn.cursor()
             cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-            up_down = self.accout_group_combo.currentText().split("-")
             use_cookies = []
-            for i in range(int(up_down[0])-1, int(up_down[1])):
-                use_cookies.append(cookies_list[i][4])
-            auto_like(self.inputWeiboLink.text(), use_cookies, self.printToGui, conn)
+            for i in range(0, len(cookies_list)):
+                if(cookies_list[i][6] == self.accout_group_combo.currentText()):
+                    use_cookies.append(cookies_list[i][4])
+                else:
+                    pass
+            try:
+                auto_like(self.inputWeiboLink.text(), use_cookies, self.printToGui, conn)
+            except Exception as e:
+                msg_box = QMessageBox(QMessageBox.Warning, "警告", str(e))
+                msg_box.show()
+                msg_box.exec_()
             self.generate_combo()
             self.inputWeiboLink.setText("")
         else:
@@ -746,27 +821,30 @@ class WeiboAutoPost(QWidget):
 
     def generate_combo(self):
         self.accout_group_combo = QComboBox()
-        self.accout_group_combo.clear()
+        for i in range(0, self.accout_group_combo.count()):
+            self.accout_group_combo.removeItem(0)
         c = conn.cursor()
-        cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-        n = 0
-        for i in range(0, len(cookies_list)):
-            n += 1
-            if n == 20 or len(cookies_list)-(i + 1) == 0:
-                self.accout_group_combo.addItem(str(i+2-n) + "-" + str(i+1))
-                n = 0
+        accountgroup_list = c.execute("SELECT * FROM WeiboAccountGroup").fetchall()
+        for i in range(0, len(accountgroup_list)):
+            self.accout_group_combo.addItem(accountgroup_list[i][1])
 
     @pyqtSlot()
     def click_btnInsure(self):
         if (self.inputWeiboContent.toPlainText() != ""):
             c = conn.cursor()
             cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-            up_down = self.accout_group_combo.currentText().split("-")
             use_cookies = []
-            for i in range(int(up_down[0])-1, int(up_down[1])):
-                use_cookies.append(cookies_list[i][4])
-            print(len(use_cookies))
-            auto_post_weibo(use_cookies, self.inputWeiboContent.toPlainText(), self.printToGui, conn)
+            for i in range(0, len(cookies_list)):
+                if(cookies_list[i][6] == self.accout_group_combo.currentText()):
+                    use_cookies.append(cookies_list[i][4])
+                else:
+                    pass
+            try:
+                auto_post_weibo(use_cookies, self.inputWeiboContent.toPlainText(), self.printToGui, conn)
+            except Exception as e:
+                msg_box = QMessageBox(QMessageBox.Warning, "警告", str(e))
+                msg_box.show()
+                msg_box.exec_()
             self.generate_combo()
             self.inputWeiboContent.setText("")
         else:
@@ -789,6 +867,8 @@ class WeiboAutoRepost(QWidget):
         icon.addPixmap(QPixmap("favicon.ico"), QIcon.Normal, QIcon.Off)
         self.setWindowIcon(icon)
         self.inputWeiboLink = QLineEdit("")
+        self.inputTopic = QLineEdit("")
+        self.inputTopic.setPlaceholderText("转发内容")
         self.outputResult = QTextEdit("")
         self.outputResult.setReadOnly(True)
         # 生成账号组下拉菜单
@@ -807,8 +887,9 @@ class WeiboAutoRepost(QWidget):
         mainLayout.addWidget(self.inputWeiboLink, 0, 1, 1, 5)
         mainLayout.addWidget(self.accout_group_combo, 0, 6, 1, 2)
         mainLayout.addWidget(self.repost_count_combo, 0, 8, 1, 1)
-        mainLayout.addWidget(btnInsure, 0, 9, 1, 1)
-        mainLayout.addWidget(self.outputResult, 1, 0, 1, 10)
+        mainLayout.addWidget(self.inputTopic, 1, 0, 1, 6)
+        mainLayout.addWidget(btnInsure, 1, 6, 1, 3)
+        mainLayout.addWidget(self.outputResult, 2, 0, 1, 9)
         self.setLayout(mainLayout)
 
     def printToGui(self, text):
@@ -816,14 +897,12 @@ class WeiboAutoRepost(QWidget):
 
     def generate_combo(self):
         self.accout_group_combo = QComboBox()
+        for i in range(0, self.accout_group_combo.count()):
+            self.accout_group_combo.removeItem(0)
         c = conn.cursor()
-        cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-        n = 0
-        for i in range(0, len(cookies_list)):
-            n += 1
-            if n == 20 or len(cookies_list)-(i + 1) == 0:
-                self.accout_group_combo.addItem(str(i+2-n) + "-" + str(i+1))
-                n = 0
+        accountgroup_list = c.execute("SELECT * FROM WeiboAccountGroup").fetchall()
+        for i in range(0, len(accountgroup_list)):
+            self.accout_group_combo.addItem(accountgroup_list[i][1])
 
     def generate_repost_count_combo(self):
         self.repost_count_combo = QComboBox()
@@ -835,11 +914,18 @@ class WeiboAutoRepost(QWidget):
         if (self.inputWeiboLink.text() != ""):
             c = conn.cursor()
             cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-            up_down = self.accout_group_combo.currentText().split("-")
             use_cookies = []
-            for i in range(int(up_down[0])-1, int(up_down[1])):
-                use_cookies.append(cookies_list[i][4])
-            auto_repost_func(self.inputWeiboLink.text(), use_cookies, self.repost_count_combo.currentIndex()+1, self.printToGui, conn)
+            for i in range(0, len(cookies_list)):
+                if(cookies_list[i][6] == self.accout_group_combo.currentText()):
+                    use_cookies.append(cookies_list[i][4])
+                else:
+                    pass
+            try:
+                auto_repost_func(self.inputWeiboLink.text(), self.inputTopic.text(), use_cookies, self.repost_count_combo.currentIndex()+1, self.printToGui, conn)
+            except Exception as e:
+                msg_box = QMessageBox(QMessageBox.Warning, "警告", str(e))
+                msg_box.show()
+                msg_box.exec_()
             self.generate_combo()
             self.inputWeiboLink.setText("")
         else:
@@ -887,25 +973,30 @@ class WeiboSuperStar(QWidget):
 
     def generate_combo(self):
         self.accout_group_combo = QComboBox()
+        for i in range(0, self.accout_group_combo.count()):
+            self.accout_group_combo.removeItem(0)
         c = conn.cursor()
-        cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-        n = 0
-        for i in range(0, len(cookies_list)):
-            n += 1
-            if n == 20 or len(cookies_list)-(i + 1) == 0:
-                self.accout_group_combo.addItem(str(i+2-n) + "-" + str(i+1))
-                n = 0
+        accountgroup_list = c.execute("SELECT * FROM WeiboAccountGroup").fetchall()
+        for i in range(0, len(accountgroup_list)):
+            self.accout_group_combo.addItem(accountgroup_list[i][1])
 
     # 发微博
     @pyqtSlot()
     def click_btnPostWeibo(self):
         c = conn.cursor()
         cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-        up_down = self.accout_group_combo.currentText().split("-")
         use_cookies = []
-        for i in range(int(up_down[0])-1, int(up_down[1])):
-            use_cookies.append(cookies_list[i][4])
-        post_weibo(use_cookies, self.printToGui)
+        for i in range(0, len(cookies_list)):
+            if (cookies_list[i][6] == self.accout_group_combo.currentText()):
+                use_cookies.append(cookies_list[i][4])
+            else:
+                pass
+        try:
+            post_weibo(use_cookies, self.printToGui)
+        except Exception as e:
+            msg_box = QMessageBox(QMessageBox.Warning, "警告", str(e))
+            msg_box.show()
+            msg_box.exec_()
 
     # 转发微博
     @pyqtSlot()
@@ -914,15 +1005,17 @@ class WeiboSuperStar(QWidget):
         cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
         up_down = self.accout_group_combo.currentText().split("-")
         use_cookies = []
-        for i in range(int(up_down[0])-1, int(up_down[1])):
-            use_cookies.append(cookies_list[i][4])
+        for i in range(0, len(cookies_list)):
+            if (cookies_list[i][6] == self.accout_group_combo.currentText()):
+                use_cookies.append(cookies_list[i][4])
+            else:
+                pass
         try:
             repost_weibo(use_cookies, self.printToGui)
         except Exception as e:
-            msg_box = QMessageBox(QMessageBox.Warning, "警告", e)
+            msg_box = QMessageBox(QMessageBox.Warning, "警告", str(e))
             msg_box.show()
             msg_box.exec_()
-            exit()
 
     # 加油卡
     @pyqtSlot()
@@ -931,12 +1024,15 @@ class WeiboSuperStar(QWidget):
         cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
         up_down = self.accout_group_combo.currentText().split("-")
         use_cookies = []
-        for i in range(int(up_down[0])-1, int(up_down[1])):
-            use_cookies.append(cookies_list[i][4])
+        for i in range(0, len(cookies_list)):
+            if (cookies_list[i][6] == self.accout_group_combo.currentText()):
+                use_cookies.append(cookies_list[i][4])
+            else:
+                pass
         try:
             cheer_card(use_cookies, self.printToGui)
         except Exception as e:
-            msg_box = QMessageBox(QMessageBox.Warning, "警告", e)
+            msg_box = QMessageBox(QMessageBox.Warning, "警告", str(e))
             msg_box.show()
             msg_box.exec_()
             exit()
