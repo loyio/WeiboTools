@@ -275,7 +275,7 @@ class WeiboInputCookies(QWidget):
                 if account == "":
                     break
                 account_list = account.split("----")
-                cmd = "INSERT INTO WeiboCookies VALUES(NULL, \'" + account_list[0] + "\', \'" + account_list[1] + "\', \'\', \'\', \'\');"
+                cmd = "INSERT INTO WeiboCookies VALUES(NULL, \'" + account_list[0] + "\', \'" + account_list[1] + "\', \'\', \'\', \'\', \'\');"
                 c.execute(cmd)
                 conn.commit()
         self.click_showcookies()
@@ -297,7 +297,7 @@ class WeiboInputCookies(QWidget):
     def click_btnInsureChange(self):
         c = conn.cursor()
         cookies_list = c.execute("SELECT * FROM WeiboCookies").fetchall()
-        cmd = "UPDATE WeiboCookies SET COOKIES = \"" + self.CookiesInput.text() + "\" WHERE USERNAME = \"" + cookies_list[int(self.accout_combo.currentText())-1][1] + "\""
+        cmd = "UPDATE WeiboCookies SET COOKIES = \"" + self.CookiesInput.text() + "\" WHERE USERNAME = \"" + cookies_list[int(self.account_combo.currentText())-1][1] + "\""
         c.execute(cmd)
         conn.commit()
         self.click_showcookies()
