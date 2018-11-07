@@ -285,7 +285,7 @@ class WeiboInputCookies(QWidget):
         username = self.AccountInput.text()
         password = self.PasswordInput.text()
         c = conn.cursor()
-        cmd = "INSERT INTO WeiboCookies VALUES(NULL, \'" + username + "\', \'" + password + "\', \"\", \"\", \"\");"
+        cmd = "INSERT INTO WeiboCookies VALUES(NULL, \'" + username + "\', \'" + password + "\', \"\", \"\", \"\", \"\");"
         c.execute(cmd)
         conn.commit()
         fake_login(username, password, conn)
@@ -317,7 +317,7 @@ class WeiboInputCookies(QWidget):
                 msg_box = QMessageBox(QMessageBox.Warning, "警告", "你的操作有误")
                 msg_box.show()
                 msg_box.exec_()
-            self.accout_combo.setCurrentIndex(0)
+            self.account_combo.setCurrentIndex(0)
             self.click_showcookies()
         else:
             msg_box = QMessageBox(QMessageBox.Warning, "警告", "没有输入要删除的账号索引")
