@@ -699,7 +699,6 @@ class WeiboAutoComment(QWidget):
                     use_cookies.append(cookies_list[i][4])
                 else:
                     pass
-            print(len(use_cookies))
             try:
                 auto_comment_func(self.inputWeiboLink.text(), use_cookies, self.comment_count_combo.currentIndex()+1, self.printToGui, conn)
             except Exception as e:
