@@ -59,10 +59,4 @@ def fake_login(username, password, conn):
             c.execute(cmd)
             conn.commit()
             print("不能直接登录,需要进行手势验证码验证")
-    # postWeibo_data = {
-    #     "content": "这是一条测试微博",
-    #     "st": judge_login_res_json["data"]["st"]
-    # }
-    # post_weibo_res = session.post("https://m.weibo.cn/api/statuses/update", data=postWeibo_data, headers=headers)
-    # print(json.loads(post_weibo_res.text))
 

@@ -15,13 +15,53 @@ import json
 # 查看自己关注的超话
 
 if __name__ == '__main__':
+    username = input("请输入用户名: ")
+    password = input("请输入密码: ")
+    login_url = "https://passport.weibo.cn/sso/login"
+    headers = {
+        "Referer": "https://passport.weibo.cn/signin/login?entry=mweibo&res=wel&wm=3349&r=https%3A%2F%2Fm.weibo.cn%2F"
+    }
+    session = requests.session()
+    login_post_data = {
+        "username": username,
+        "password": password,
+        "savestate": "1",
+        "r": "https://m.weibo.cn/",
+        "ec": "0",
+        "pagerefer": "https://m.weibo.cn/login?backURL=https%253A%252F%252Fm.weibo.cn%252F",
+        "entry": "mweibo",
+        "wentry": "",
+        "loginfrom": "",
+        "client_id": "",
+        "code": "",
+        "qq": "",
+        "mainpageflag": "1",
+        "hff": "",
+        "hfp": ""
+    }
+    login_page_res = session.post(login_url, data=login_post_data, headers=headers)
+    login_page_res_json = json.loads(login_page_res.text)
+    judge_login_res = session.get("https://m.weibo.cn/api/config").text
+    judge_login_res_json = json.loads(judge_login_res)
+    cookie_str = ''
+    if judge_login_res_json["data"]["login"] == True:
+        print(1, "自动登录成功")
+        for key in list(session.cookies.get_dict().keys()):  # 遍历字典
+            cookie_str += (key + '=' + session.cookies.get_dict()[key] + ';')  # 将键值对拿出来拼接一下
+    else:
+        if login_page_res_json["msg"] == "用户名或密码错误":
+            print("用户名或密码错误")
+            exit()
+        else:
+            print("不能直接登录,需要进行手势验证码验证")
+            exit()
     followtopic_list = []
     url = "https://m.weibo.cn/api/container/getIndex?containerid=100803_-_followsuper"
     session = requests.session()
     headers = {
         "Host": "m.weibo.cn",
         "Referer": "https://m.weibo.cn",
-        "Cookie": "_T_WM=708923df68a0352aef9f49395806ecf5; WEIBOCN_FROM=1110006030; SUB=_2A2522ueKDeRhGeVH6VMU-SjMzDmIHXVSJInCrDV6PUJbkdAKLVXckW1NT3_JWyQHEHoLRCNNaa-vtS7PHhgkYdKp; SUHB=0wn17vCTQ1QMLf; SCF=Aplj5FxFH0-WNZKC6UKEHOuQPqf_jTY5McD2blDumH_7pySahxyKcSlHvOh29xaYawIvm-TFZQ2zUXMu3InC1_o.; SSOLoginState=1541314522; MLOGIN=1; M_WEIBOCN_PARAMS=luicode%3D10000011%26lfid%3D102803%26uicode%3D20000174"
+        "Cookie": cookie_str
     }
     followtopic_res = session.get(url, headers=headers)
     followtopic_res_json = json.loads(followtopic_res.text)
