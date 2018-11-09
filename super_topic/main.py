@@ -53,6 +53,7 @@ if __name__ == '__main__':
             print("用户名或密码错误")
             exit()
         else:
+            print(login_page_res_json)
             print("不能直接登录,需要进行手势验证码验证")
             exit()
     followtopic_list = []
@@ -93,4 +94,4 @@ if __name__ == '__main__':
             if res_json["ok"] == 1:
                 print("签到成功 "+res_json["data"]["msg"])
             else:
-                print("签到失败 "+res_json["data"]["msg"])
+                print("签到失败 "+res_json)
