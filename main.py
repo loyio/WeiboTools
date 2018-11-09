@@ -13,7 +13,6 @@ import sys
 import sqlite3
 import os
 import json
-sys.path.append(os.path.abspath(os.path.dirname(os.getcwd())+os.path.sep+"."))
 from auto_comment.main import auto_comment_func
 from weibo_data.get_user_info import getUesrInfo
 from auto_post.main import auto_post_weibo

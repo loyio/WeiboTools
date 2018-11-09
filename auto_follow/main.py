@@ -9,8 +9,6 @@ import json
 import sys
 import time
 import os
-sys.path.append(os.path.abspath(os.path.dirname(os.getcwd())+os.path.sep+"."))
-import login_account_cookies
 
 def auto_follow(uid, printToGui, conn):
     begin_time = time.time()
