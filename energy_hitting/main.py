@@ -24,7 +24,7 @@ def post_weibo(account_cookies, printToGui):
         login_data = session.get(st_url, headers=headers).text
         login_data_json = json.loads(login_data)["data"]
         post_data = {
-            "content": "@火箭少女101_杨超越 我在#超新星全运会#为你加油！生而为赢，不惧挑战！ http://t.cn/EzV5piM",
+            "content": "@XXX 我在#超新星全运会#为你加油！生而为赢，不惧挑战！ http://t.cn/EzV5piM",
             "st": login_data_json["st"]
         }
         post_weibo_res = session.post(post_weibo_url, data=post_data, headers=headers)
@@ -109,7 +109,7 @@ def cheer_card(account_cookies, printToGui):
             "suid": "5644764907",
             "spt": 1,
             "send_wb": "1",
-            "send_text": "生而为赢，不惧挑战！@火箭少女101_杨超越 我在#超新星全运会#加油能量榜上为你送出加油卡",
+            "send_text": "生而为赢，不惧挑战！@XXX 我在#超新星全运会#加油能量榜上为你送出加油卡",
             "follow_uid": "2110705772",
             "page_type": "tvenergy_index_star"
         }
