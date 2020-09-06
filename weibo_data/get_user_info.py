@@ -43,4 +43,4 @@ def getUesrInfo(userCheck, UidOrName, printToGui):
             printToGui("微博等级:  "+ str(user_info_json["urank"]))
             printToGui("微博主页链接: " + "https://m.weibo.cn/u/" + str(user_info_json["id"]))
     else:
-        user_link = "https://api.weibo.cn/2/profile?new_version=0&user_domain=n/火箭少女101_杨超越"
+        user_link = "https://api.weibo.cn/2/profile?new_version=0&user_domain=n/央视新闻"
