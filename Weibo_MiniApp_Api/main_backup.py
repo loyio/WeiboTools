@@ -2,7 +2,7 @@
 """
 Created on 2018/10/8 
 
-@author: susmote
+@author: loyio
 """
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QGridLayout, QLineEdit, QPushButton, QTextEdit, QTableWidget

@@ -2,7 +2,7 @@
 """
 Created on 2018/10/8 
 
-@author: susmote
+@author: loyio
 """
 
 from PyQt5.QtWidgets import *
@@ -30,7 +30,7 @@ conn = sqlite3.connect("weibo_account.sqlite")
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('微博自动转赞评系统(By susmote)')
+        self.setWindowTitle('微博自动转赞评系统(By loyio)')
         #设置图标
         icon = QIcon()
         icon.addPixmap(QPixmap("favicon.ico"), QIcon.Normal, QIcon.Off)

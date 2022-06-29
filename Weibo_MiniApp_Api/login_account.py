@@ -6,7 +6,7 @@ Created on 2018/10/29
 """
 
 user_account = [
-    #susmote
+    #loyio
     {
         "gsid": "",
         "s": ""

@@ -2,7 +2,7 @@
 """
 Created on 2018/11/2 
 
-@author: susmote
+@author: loyio
 """
 
 import sqlite3

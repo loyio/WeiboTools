@@ -2,7 +2,7 @@
 """
 Created on 2018/10/31 
 
-@author: susmote
+@author: loyio
 """
 
 import requests
@@ -17,9 +17,7 @@ def fake_login(username, password, conn):
     session = requests.session()
     login_post_data = {
         "username": username,
-        # "username": "qzbidqzyaqxuy-gmtj@yahoo.com",
         "password": password,
-        # "password": "ZXctojojcpd62",
         "savestate": "1",
         "r": "https://m.weibo.cn/",
         "ec": "0",
