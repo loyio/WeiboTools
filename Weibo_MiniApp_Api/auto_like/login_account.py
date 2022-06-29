@@ -2,13 +2,13 @@
 """
 Created on 2018/10/29 
 
-@author: susmote
+@author: loyio
 """
 
 user_account = [
-    #susmote
+    #loyio
     {
-        "gsid": "_2A_p6SRwbCoX0ky4rkw3dSFsN3czlPcwoSwrRzmFeEtLG44FeQ8wYWFSEZASDtbw6xJh-HxDL4RQ3qCLDU3ao8pRA",
-        "s": "95ed5c13"
+        "gsid": "",
+        "s": ""
     }
 ]
